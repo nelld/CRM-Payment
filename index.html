@@ -1,0 +1,1527 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Outstanding invoices • Payment (Mockup)</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50: "#eef7ff",
+                100: "#d9eeff",
+                200: "#b7dcff",
+                300: "#84c3ff",
+                400: "#4aa3ff",
+                500: "#1e7fff",
+                600: "#0f60d6",
+                700: "#0e4cad",
+                800: "#123f87",
+                900: "#13376f",
+              },
+            },
+            boxShadow: {
+              soft: "0 10px 30px rgba(15, 23, 42, 0.10)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :focus-visible {
+        outline: none;
+      }
+
+      tr[data-invoice-row][data-selected="true"] {
+        background-color: rgba(238, 247, 255, 0.75); /* light blue */
+      }
+
+      [data-mobile-invoice][data-selected="true"] {
+        background-color: rgba(238, 247, 255, 0.75); /* light blue */
+      }
+
+      /* Sticky table header inside scroll container */
+      table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: #fff;
+      }
+    </style>
+  </head>
+
+  <body class="min-h-screen text-slate-900" style="background-color: #fbfbfb">
+    <!-- Header -->
+    <header class="bg-white shadow-md">
+      <div class="mx-auto max-w-5xl px-4 py-4 sm:px-6 sm:py-5">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-3">
+            <img
+              src="./yardi_logo.svg"
+              alt="Yardi"
+              class="h-8 w-auto sm:h-9"
+              loading="eager"
+              decoding="async"
+            />
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
+              Secure payment
+            </span>
+            <div
+              class="inline-flex items-center gap-2 rounded-md bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 ring-1 ring-slate-200 whitespace-nowrap"
+              aria-label="Account 10012465"
+            >
+              <span class="text-slate-500">Account</span>
+              <span class="font-semibold tabular-nums text-slate-900">10012465</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="mx-auto max-w-5xl px-4 py-6 pb-24 sm:px-6 sm:py-10 lg:pb-0">
+      <section class="mx-auto max-w-4xl">
+        <div class="text-left">
+          <h1 class="text-xl font-semibold text-slate-900 sm:text-2xl">Outstanding invoices</h1>
+        </div>
+
+        <!-- KPI tiles -->
+        <div class="mt-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <div class="flex gap-3 overflow-x-auto pb-2 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0">
+            <div class="min-w-[240px] shrink-0 rounded-md bg-white p-4 shadow-md ring-1 ring-slate-200 sm:min-w-0 sm:p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total outstanding</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums text-slate-900 lg:text-xl" id="kpiTotal">$0.00</p>
+            <p class="mt-1 text-sm text-slate-600"><span id="kpiCount">0</span> open invoice(s)</p>
+            </div>
+            <div class="min-w-[240px] shrink-0 rounded-md bg-white p-4 shadow-md ring-1 ring-slate-200 sm:min-w-0 sm:p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Overdue</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums text-rose-700 lg:text-xl" id="kpiOverdue">$0.00</p>
+            <p class="mt-1 text-sm text-slate-600"><span id="kpiOverdueCount">0</span> invoice(s)</p>
+            </div>
+            <div class="min-w-[240px] shrink-0 rounded-md bg-white p-4 shadow-md ring-1 ring-slate-200 sm:min-w-0 sm:p-5">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Due soon</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums text-amber-700 lg:text-xl" id="kpiDueSoon">$0.00</p>
+            <p class="mt-1 text-sm text-slate-600"><span id="kpiDueSoonCount">0</span> invoice(s)</p>
+            </div>
+          </div>
+        </div>
+        <!-- Table card -->
+        <div class="mt-6 rounded-md bg-white shadow-md ring-1 ring-slate-200 lg:flex lg:h-[calc(100vh-320px)] lg:flex-col lg:overflow-hidden">
+          <div class="border-b border-slate-200 px-4 py-4 sm:px-6">
+            <h2 class="text-sm font-semibold text-slate-900">Select invoices to pay</h2>
+            <p class="mt-1 text-sm text-slate-600">
+              Select one or more invoices to pay by credit card. You’ll review your selection before being charged.
+            </p>
+          </div>
+
+          <!-- Table -->
+          <div class="border-t border-slate-200 lg:flex lg:flex-1 lg:min-h-0 lg:flex-col">
+            <!-- Table toolbar (search aligned with first column) -->
+            <div class="px-4 py-3 sm:px-6">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div class="max-w-xs">
+                  <label class="sr-only" for="search">Search invoices</label>
+                  <div class="relative">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                      <svg class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                        <path
+                          fill-rule="evenodd"
+                          d="M9 3a6 6 0 104.472 10.03l2.249 2.25a1 1 0 001.414-1.415l-2.25-2.249A6 6 0 009 3zm-4 6a4 4 0 117.999.001A4 4 0 015 9z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      id="search"
+                      type="search"
+                      placeholder="Search"
+                      class="w-full rounded-md border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-900 placeholder:text-slate-400 outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-100"
+                    />
+                  </div>
+                </div>
+
+                <div class="hidden flex-wrap items-center justify-end gap-x-3 gap-y-1 text-sm text-slate-700 sm:flex">
+                  <div>
+                    <span class="font-semibold text-slate-900" id="selectedCount">0</span>
+                    selected
+                    <span class="mx-2 text-slate-300">•</span>
+                    Total:
+                    <span class="font-semibold tabular-nums text-slate-900" id="selectedTotal">$0.00</span>
+                  </div>
+                  <button
+                    id="clearSelection"
+                    type="button"
+                    class="hidden text-sm font-semibold text-brand-700 hover:text-brand-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                  >
+                    Clear selection
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rows: scroll inside the card on desktop -->
+            <div class="lg:min-h-0 lg:flex-1 lg:overflow-y-auto sm:overflow-x-auto">
+              <!-- Mobile stacked layout -->
+              <div id="mobileInvoiceCards" class="sm:hidden"></div>
+
+              <!-- Table layout (sm+) -->
+              <div class="hidden sm:block">
+                <template id="legacyTable" hidden>
+                <table class="min-w-full divide-y divide-slate-200">
+                  <thead class="sticky top-0 z-10 bg-white border-b-[3px] border-slate-200">
+                    <tr class="text-left text-sm font-medium text-slate-500">
+                      <th scope="col" class="w-12 px-4 py-3 sm:px-6">
+                        <span class="sr-only">Select all invoices</span>
+                        <input
+                          id="selectAll"
+                          type="checkbox"
+                          class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                          aria-label="Select all invoices"
+                        />
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="invoiceNumber"
+                          aria-sort="none"
+                        >
+                          Invoice
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="invoiceNumber">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="status"
+                          aria-sort="none"
+                        >
+                          Status
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="status">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="dueDate"
+                          aria-sort="none"
+                        >
+                          Due date
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="dueDate">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="invoiceDate"
+                          aria-sort="none"
+                        >
+                          Invoice date
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="invoiceDate">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 text-right sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center justify-end gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="amount"
+                          aria-sort="none"
+                        >
+                          Amount
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="amount">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                    </tr>
+                  </tbody>
+                  <!-- Duplicate block below is intentionally disabled -->
+                  <!--
+                  <tbody id="invoiceTbody" class="divide-y divide-slate-100 bg-white">
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="302"
+                    data-invoice-date="2024-10-16"
+                    data-due-date="2024-10-31"
+                    data-bucket="dueSoon"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="599.45"
+                        aria-label="Select invoice 302"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#302</span>
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+                          Due soon
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/16/2024</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/31/2024</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$599.45</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="306"
+                    data-invoice-date="2026-02-16"
+                    data-due-date="2026-03-28"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="100.00"
+                        aria-label="Select invoice 306"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#306</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/16/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/28/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$100.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="289"
+                    data-invoice-date="2025-11-02"
+                    data-due-date="2025-11-30"
+                    data-bucket="overdue"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="42.17"
+                        aria-label="Select invoice 289"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#289</span>
+                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">
+                          Overdue
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/02/2025</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/30/2025</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$42.17</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="311"
+                    data-invoice-date="2026-01-05"
+                    data-due-date="2026-02-04"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="250.00"
+                        aria-label="Select invoice 311"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#311</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/05/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/04/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$250.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="312"
+                    data-invoice-date="2026-01-18"
+                    data-due-date="2026-02-17"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="89.99"
+                        aria-label="Select invoice 312"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#312</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/18/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/17/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$89.99</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="313"
+                    data-invoice-date="2026-01-27"
+                    data-due-date="2026-02-26"
+                    data-bucket="dueSoon"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="1249.10"
+                        aria-label="Select invoice 313"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#313</span>
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+                          Due soon
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/27/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/26/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$1,249.10</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="314"
+                    data-invoice-date="2026-02-02"
+                    data-due-date="2026-03-04"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="320.55"
+                        aria-label="Select invoice 314"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#314</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/02/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/04/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$320.55</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="315"
+                    data-invoice-date="2026-02-10"
+                    data-due-date="2026-03-12"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="15.00"
+                        aria-label="Select invoice 315"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#315</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/10/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/12/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$15.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="316"
+                    data-invoice-date="2025-12-20"
+                    data-due-date="2026-01-19"
+                    data-bucket="overdue"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="75.25"
+                        aria-label="Select invoice 316"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#316</span>
+                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">
+                          Overdue
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">12/20/2025</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/19/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$75.25</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="317"
+                    data-invoice-date="2025-12-28"
+                    data-due-date="2026-01-27"
+                    data-bucket="overdue"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="410.00"
+                        aria-label="Select invoice 317"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#317</span>
+                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">
+                          Overdue
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">12/28/2025</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/27/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$410.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="318"
+                    data-invoice-date="2026-02-22"
+                    data-due-date="2026-03-24"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="999.00"
+                        aria-label="Select invoice 318"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#318</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/22/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/24/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$999.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="319"
+                    data-invoice-date="2026-02-25"
+                    data-due-date="2026-03-27"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="60.00"
+                        aria-label="Select invoice 319"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#319</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/25/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/27/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$60.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="320"
+                    data-invoice-date="2026-03-01"
+                    data-due-date="2026-03-31"
+                    data-bucket="dueSoon"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="180.75"
+                        aria-label="Select invoice 320"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#320</span>
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+                          Due soon
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/01/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/31/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$180.75</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="321"
+                    data-invoice-date="2026-03-02"
+                    data-due-date="2026-04-01"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="12.34"
+                        aria-label="Select invoice 321"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#321</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/02/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">04/01/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$12.34</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="322"
+                    data-invoice-date="2026-03-02"
+                    data-due-date="2026-03-10"
+                    data-bucket="dueSoon"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="530.00"
+                        aria-label="Select invoice 322"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#322</span>
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+                          Due soon
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/02/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/10/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$530.00</td>
+                    </tr>
+                  </thead>
+                  <tbody id="invoiceTbody" class="divide-y divide-slate-100 bg-white">
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="302"
+                    data-invoice-date="2024-10-16"
+                    data-due-date="2024-10-31"
+                    data-bucket="dueSoon"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="599.45"
+                        aria-label="Select invoice 302"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#302</span>
+                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">
+                          Due soon
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/16/2024</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/31/2024</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$599.45</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="306"
+                    data-invoice-date="2026-02-16"
+                    data-due-date="2026-03-28"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="100.00"
+                        aria-label="Select invoice 306"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#306</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/16/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/28/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$100.00</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="289"
+                    data-invoice-date="2025-11-02"
+                    data-due-date="2025-11-30"
+                    data-bucket="overdue"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="42.17"
+                        aria-label="Select invoice 289"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#289</span>
+                        <span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">
+                          Overdue
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/02/2025</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/30/2025</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$42.17</td>
+                  </tr>
+
+                  <tr
+                    class="group cursor-pointer hover:bg-brand-50/30"
+                    data-invoice-row
+                    data-invoice-number="311"
+                    data-invoice-date="2026-01-05"
+                    data-due-date="2026-02-04"
+                    data-bucket="open"
+                  >
+                    <td class="px-4 py-4 sm:px-6">
+                      <input
+                        type="checkbox"
+                        class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                        data-amount="250.00"
+                        aria-label="Select invoice 311"
+                      />
+                    </td>
+                    <td class="px-4 py-4 sm:px-6">
+                      <div class="flex items-center gap-2">
+                        <span class="font-semibold text-slate-900">#311</span>
+                        <span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">
+                          Open
+                        </span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/05/2026</td>
+                    <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/04/2026</td>
+                    <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$250.00</td>
+                  </tr>
+                  <!-- (remaining rows unchanged below) -->
+                  </tbody>
+                  
+                </table>
+                </template>
+
+                <table class="min-w-full divide-y divide-slate-200">
+                  <thead class="sticky top-0 z-10 bg-white border-b-[3px] border-slate-200">
+                    <tr class="text-left text-sm font-medium text-slate-500">
+                      <th scope="col" class="w-12 px-4 py-3 sm:px-6">
+                        <span class="sr-only">Select all invoices</span>
+                        <input
+                          id="selectAll"
+                          type="checkbox"
+                          class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                          aria-label="Select all invoices"
+                        />
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="invoiceNumber"
+                          aria-sort="none"
+                        >
+                          Invoice
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="invoiceNumber">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="status"
+                          aria-sort="none"
+                        >
+                          Status
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="status">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="dueDate"
+                          aria-sort="none"
+                        >
+                          Due date
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="dueDate">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="invoiceDate"
+                          aria-sort="none"
+                        >
+                          Invoice date
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="invoiceDate">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                      <th scope="col" class="px-4 py-3 text-right sm:px-6">
+                        <button
+                          type="button"
+                          class="group inline-flex items-center justify-end gap-1 rounded-md px-1 py-0.5 text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                          data-sort="amount"
+                          aria-sort="none"
+                        >
+                          Amount
+                          <span class="ml-1 inline-flex flex-col leading-none" aria-hidden="true" data-sort-indicator="amount">
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 text-slate-300" data-sort-up>
+                              <path d="M5 0L10 6H0L5 0Z" fill="currentColor"></path>
+                            </svg>
+                            <svg viewBox="0 0 10 6" class="h-2 w-2 -mt-0.5 text-slate-300" data-sort-down>
+                              <path d="M0 0H10L5 6L0 0Z" fill="currentColor"></path>
+                            </svg>
+                          </span>
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody id="invoiceTbody" class="divide-y divide-slate-100 bg-white">
+                    <!-- Generated rows (demo data) -->
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="302" data-invoice-date="2024-10-16" data-due-date="2024-10-31" data-bucket="dueSoon">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="599.45" aria-label="Select invoice 302" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#302</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">Due soon</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/31/2024</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">10/16/2024</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$599.45</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="306" data-invoice-date="2026-02-16" data-due-date="2026-03-28" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="100.00" aria-label="Select invoice 306" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#306</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/28/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/16/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$100.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="289" data-invoice-date="2025-11-02" data-due-date="2025-11-30" data-bucket="overdue">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="42.17" aria-label="Select invoice 289" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#289</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">Overdue</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/30/2025</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">11/02/2025</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$42.17</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="311" data-invoice-date="2026-01-05" data-due-date="2026-02-04" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="250.00" aria-label="Select invoice 311" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#311</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/04/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/05/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$250.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="312" data-invoice-date="2026-01-18" data-due-date="2026-02-17" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="89.99" aria-label="Select invoice 312" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#312</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/17/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/18/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$89.99</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="313" data-invoice-date="2026-01-27" data-due-date="2026-02-26" data-bucket="dueSoon">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="1249.10" aria-label="Select invoice 313" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#313</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">Due soon</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/26/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/27/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$1,249.10</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="314" data-invoice-date="2026-02-02" data-due-date="2026-03-04" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="320.55" aria-label="Select invoice 314" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#314</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/04/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/02/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$320.55</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="315" data-invoice-date="2026-02-10" data-due-date="2026-03-12" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="15.00" aria-label="Select invoice 315" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#315</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/12/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/10/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$15.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="316" data-invoice-date="2025-12-20" data-due-date="2026-01-19" data-bucket="overdue">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="75.25" aria-label="Select invoice 316" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#316</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">Overdue</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/19/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">12/20/2025</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$75.25</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="317" data-invoice-date="2025-12-28" data-due-date="2026-01-27" data-bucket="overdue">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="410.00" aria-label="Select invoice 317" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#317</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">Overdue</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">01/27/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">12/28/2025</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$410.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="318" data-invoice-date="2026-02-22" data-due-date="2026-03-24" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="999.00" aria-label="Select invoice 318" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#318</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/24/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/22/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$999.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="319" data-invoice-date="2026-02-25" data-due-date="2026-03-27" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="60.00" aria-label="Select invoice 319" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#319</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/27/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">02/25/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$60.00</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="320" data-invoice-date="2026-03-01" data-due-date="2026-03-31" data-bucket="dueSoon">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="180.75" aria-label="Select invoice 320" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#320</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">Due soon</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/31/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/01/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$180.75</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="321" data-invoice-date="2026-03-02" data-due-date="2026-04-01" data-bucket="open">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="12.34" aria-label="Select invoice 321" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#321</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-slate-200">Open</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">04/01/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/02/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$12.34</td>
+                    </tr>
+                    <tr class="group cursor-pointer hover:bg-brand-50/30" data-invoice-row data-invoice-number="322" data-invoice-date="2026-03-02" data-due-date="2026-03-10" data-bucket="dueSoon">
+                      <td class="px-4 py-4 sm:px-6"><input type="checkbox" class="invoiceCheck h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" data-amount="530.00" aria-label="Select invoice 322" /></td>
+                      <td class="px-4 py-4 font-semibold text-slate-900 sm:px-6">#322</td>
+                      <td class="px-4 py-4 sm:px-6"><span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-amber-100">Due soon</span></td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/10/2026</td>
+                      <td class="px-4 py-4 text-sm text-slate-700 sm:px-6 tabular-nums">03/02/2026</td>
+                      <td class="px-4 py-4 text-right text-sm font-semibold text-slate-900 sm:px-6 tabular-nums">$530.00</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action bar (desktop in-card, always visible) -->
+          <div class="hidden border-t border-slate-200 bg-white px-4 py-4 sm:px-6 lg:block">
+            <div class="flex items-center justify-end gap-4">
+              <div class="flex flex-col items-end gap-2">
+                <button
+                  id="payBtn"
+                  type="button"
+                  disabled
+                  class="inline-flex items-center justify-center rounded-md bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200"
+                >
+                  Pay $0.00
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="support" class="mt-6 rounded-md bg-white p-4 shadow-md ring-1 ring-slate-200 sm:p-5">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 class="text-sm font-semibold text-slate-900">Need help?</h3>
+              <p class="mt-1 text-sm text-slate-600">Questions about invoices or payments? Contact support.</p>
+            </div>
+            <a
+              class="inline-flex items-center justify-center rounded-md bg-white px-4 py-3 text-sm font-semibold text-brand-700 ring-1 ring-slate-200 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+              href="mailto:acct@yardi.com"
+            >
+              Email support
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Sticky mobile CTA -->
+    <div class="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 lg:hidden">
+      <div class="mx-auto max-w-5xl px-4 py-3 sm:px-6">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs text-slate-600">Selected total</p>
+            <p class="truncate text-sm font-semibold tabular-nums text-slate-900" id="mobileTotal">$0.00</p>
+            <p class="mt-0.5 text-[11px] text-slate-600"><span id="mobileSelectedCount">0</span> selected</p>
+          </div>
+          <div class="flex flex-col items-end">
+            <button
+              id="mobilePayBtn"
+              type="button"
+              disabled
+              class="inline-flex shrink-0 items-center justify-center rounded-md bg-brand-600 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200"
+            >
+              Pay
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-10 border-t border-slate-200 bg-white">
+      <div class="mx-auto max-w-5xl px-4 py-6 text-xs text-slate-600 sm:px-6">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p>© Yardi Systems, LLC. All rights reserved.</p>
+          <div class="flex items-center gap-4">
+            <a
+              href="#"
+              class="font-semibold text-slate-700 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+            >
+              Privacy policy
+            </a>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <script>
+      const fmt = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" });
+
+      function getChecks() {
+        return Array.from(document.querySelectorAll(".invoiceCheck"));
+      }
+
+      function computeSelected() {
+        const checks = getChecks();
+        const selected = checks.filter((c) => c.checked);
+        const total = selected.reduce((sum, c) => sum + Number(c.dataset.amount || 0), 0);
+        return { selectedCount: selected.length, total };
+      }
+
+      function syncUI() {
+        const { selectedCount, total } = computeSelected();
+        const totalText = fmt.format(total);
+
+        document.getElementById("selectedCount").textContent = String(selectedCount);
+        document.getElementById("selectedTotal").textContent = totalText;
+        document.getElementById("mobileTotal").textContent = totalText;
+        document.getElementById("mobileSelectedCount").textContent = String(selectedCount);
+
+        const payBtn = document.getElementById("payBtn");
+        const mobilePayBtn = document.getElementById("mobilePayBtn");
+        const clearBtn = document.getElementById("clearSelection");
+
+        const enabled = selectedCount > 0;
+        payBtn.disabled = !enabled;
+        mobilePayBtn.disabled = !enabled;
+        payBtn.textContent = enabled ? `Proceed to pay ${totalText}` : "Proceed to pay $0.00";
+        mobilePayBtn.textContent = enabled ? `Proceed to pay ${totalText}` : "Proceed to pay $0.00";
+        clearBtn.classList.toggle("hidden", !enabled);
+
+        const checks = getChecks();
+        const selectAll = document.getElementById("selectAll");
+        const allChecked = checks.length > 0 && checks.every((c) => c.checked);
+        const noneChecked = checks.every((c) => !c.checked);
+        selectAll.checked = allChecked;
+        selectAll.indeterminate = !allChecked && !noneChecked;
+
+        // Row selected styling
+        document.querySelectorAll("[data-invoice-row]").forEach((row) => {
+          const checkbox = row.querySelector(".invoiceCheck");
+          row.dataset.selected = checkbox?.checked ? "true" : "false";
+        });
+
+        renderMobileCards();
+      }
+
+      function bindRowClick() {
+        const rows = document.querySelectorAll("[data-invoice-row]");
+        rows.forEach((row) => {
+          row.addEventListener("click", (e) => {
+            const target = e.target;
+            if (target && (target.tagName === "INPUT" || target.tagName === "A" || target.closest("a"))) return;
+            const checkbox = row.querySelector(".invoiceCheck");
+            checkbox.checked = !checkbox.checked;
+            syncUI();
+          });
+        });
+      }
+
+      function bindCheckboxes() {
+        getChecks().forEach((c) => c.addEventListener("change", syncUI));
+        document.getElementById("selectAll").addEventListener("change", (e) => {
+          const checked = e.target.checked;
+          getChecks().forEach((c) => (c.checked = checked));
+          syncUI();
+        });
+      }
+
+      function bindClearSelection() {
+        const btn = document.getElementById("clearSelection");
+        btn.addEventListener("click", () => {
+          getChecks().forEach((c) => (c.checked = false));
+          syncUI();
+        });
+      }
+
+      function bindPayButtons() {
+        const handler = () => {
+          const { selectedCount, total } = computeSelected();
+          if (selectedCount === 0) return;
+          alert(`Mockup: Proceed to secure payment for ${fmt.format(total)} (${selectedCount} invoice(s)).`);
+        };
+        document.getElementById("payBtn").addEventListener("click", handler);
+        document.getElementById("mobilePayBtn").addEventListener("click", handler);
+      }
+
+      function bindSearch() {
+        const input = document.getElementById("search");
+        input.addEventListener("input", () => {
+          const q = input.value.trim().toLowerCase();
+          document.querySelectorAll("[data-invoice-row]").forEach((row) => {
+            const inv = String(row.dataset.invoiceNumber || "").toLowerCase();
+            row.classList.toggle("hidden", q.length > 0 && !inv.includes(q));
+          });
+          renderMobileCards();
+        });
+      }
+
+      function renderMobileCards() {
+        const container = document.getElementById("mobileInvoiceCards");
+        if (!container) return;
+
+        // Only needed below sm; keep DOM light when hidden
+        if (window.matchMedia("(min-width: 640px)").matches) {
+          container.innerHTML = "";
+          return;
+        }
+
+        const rows = Array.from(document.querySelectorAll("[data-invoice-row]")).filter(
+          (row) => !row.classList.contains("hidden"),
+        );
+
+        function statusMeta(bucket) {
+          if (bucket === "overdue")
+            return { label: "Overdue", className: "bg-rose-50 text-rose-700 ring-rose-100" };
+          if (bucket === "dueSoon")
+            return { label: "Due soon", className: "bg-amber-50 text-amber-800 ring-amber-100" };
+          return { label: "Open", className: "bg-slate-50 text-slate-700 ring-slate-200" };
+        }
+
+        function formatIsoDate(iso) {
+          const d = new Date(String(iso || ""));
+          if (Number.isNaN(d.getTime())) return "";
+          return d.toLocaleDateString();
+        }
+
+        container.innerHTML = "";
+
+        rows.forEach((row) => {
+          const checkbox = row.querySelector(".invoiceCheck");
+          if (!checkbox) return;
+
+          const inv = row.dataset.invoiceNumber || "";
+          const invoiceDate = row.dataset.invoiceDate || "";
+          const dueDate = row.dataset.dueDate || "";
+          const bucket = row.dataset.bucket || "open";
+          const amount = Number(checkbox.dataset.amount || 0);
+          const { label, className } = statusMeta(bucket);
+
+          const card = document.createElement("div");
+          card.className = "border-b border-slate-200 px-4 py-3";
+          card.dataset.mobileInvoice = "true";
+          card.dataset.selected = checkbox.checked ? "true" : "false";
+
+          card.innerHTML = `
+            <div class="flex items-start justify-between gap-3">
+              <label class="flex items-start gap-3">
+                <input type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500" ${
+                  checkbox.checked ? "checked" : ""
+                } aria-label="Select invoice ${inv}" />
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-slate-900">#${inv}</span>
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${className}">${label}</span>
+                  </div>
+                  <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                    <div>
+                      <div class="text-slate-500">Due</div>
+                      <div class="font-medium tabular-nums text-slate-900">${formatIsoDate(dueDate)}</div>
+                    </div>
+                    <div>
+                      <div class="text-slate-500">Invoice date</div>
+                      <div class="font-medium tabular-nums text-slate-900">${formatIsoDate(invoiceDate)}</div>
+                    </div>
+                  </div>
+                </div>
+              </label>
+              <div class="shrink-0 text-right">
+                <div class="text-xs text-slate-500">Amount</div>
+                <div class="mt-0.5 text-sm font-semibold tabular-nums text-slate-900">${fmt.format(amount)}</div>
+              </div>
+            </div>
+          `;
+
+          const mobileCheck = card.querySelector("input[type='checkbox']");
+          mobileCheck.addEventListener("change", (e) => {
+            checkbox.checked = e.target.checked;
+            syncUI();
+          });
+
+          card.addEventListener("click", (e) => {
+            const target = e.target;
+            if (target && target.tagName === "INPUT") return;
+            mobileCheck.checked = !mobileCheck.checked;
+            mobileCheck.dispatchEvent(new Event("change", { bubbles: true }));
+          });
+
+          container.appendChild(card);
+        });
+      }
+
+      function bindSorting() {
+        let currentKey = "dueDate";
+        let currentDir = "asc";
+
+        const headButtons = Array.from(document.querySelectorAll("thead [data-sort]"));
+
+        function setIndicators() {
+          headButtons.forEach((btn) => {
+            const key = btn.dataset.sort;
+            const indicator = document.querySelector(`[data-sort-indicator="${CSS.escape(key)}"]`);
+            const up = indicator?.querySelector("[data-sort-up]");
+            const down = indicator?.querySelector("[data-sort-down]");
+
+            if (key !== currentKey) {
+              btn.setAttribute("aria-sort", "none");
+              up?.classList.remove("text-slate-700");
+              down?.classList.remove("text-slate-700");
+              up?.classList.add("text-slate-300");
+              down?.classList.add("text-slate-300");
+              return;
+            }
+
+            const aria = currentDir === "asc" ? "ascending" : "descending";
+            btn.setAttribute("aria-sort", aria);
+
+            if (currentDir === "asc") {
+              up?.classList.add("text-slate-700");
+              up?.classList.remove("text-slate-300");
+              down?.classList.add("text-slate-300");
+              down?.classList.remove("text-slate-700");
+            } else {
+              down?.classList.add("text-slate-700");
+              down?.classList.remove("text-slate-300");
+              up?.classList.add("text-slate-300");
+              up?.classList.remove("text-slate-700");
+            }
+          });
+        }
+
+        function getRowValue(row, key) {
+          if (key === "invoiceNumber") return Number(row.dataset.invoiceNumber || 0);
+          if (key === "invoiceDate") return Date.parse(row.dataset.invoiceDate || "") || 0;
+          if (key === "dueDate") return Date.parse(row.dataset.dueDate || "") || 0;
+          if (key === "status") {
+            // Severity order for default ascending sort: Overdue → Due soon → Open
+            const bucket = String(row.dataset.bucket || "open");
+            const order = { overdue: 0, dueSoon: 1, open: 2 };
+            return order[bucket] ?? 99;
+          }
+          if (key === "amount") {
+            const checkbox = row.querySelector(".invoiceCheck");
+            return Number(checkbox?.dataset.amount || 0);
+          }
+          return 0;
+        }
+
+        function applySort() {
+          const tbody = document.getElementById("invoiceTbody");
+          const rows = Array.from(tbody.querySelectorAll("[data-invoice-row]"));
+          const dirFactor = currentDir === "asc" ? 1 : -1;
+
+          rows.sort((a, b) => {
+            const av = getRowValue(a, currentKey);
+            const bv = getRowValue(b, currentKey);
+            if (av === bv) return 0;
+            return av > bv ? dirFactor : -dirFactor;
+          });
+
+          rows.forEach((r) => tbody.appendChild(r));
+          setIndicators();
+          renderMobileCards();
+        }
+
+        headButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const nextKey = btn.dataset.sort;
+            if (!nextKey) return;
+
+            if (nextKey === currentKey) currentDir = currentDir === "asc" ? "desc" : "asc";
+            else {
+              currentKey = nextKey;
+              currentDir = "asc";
+            }
+
+            applySort();
+          });
+        });
+
+        applySort(); // default sort on load
+      }
+
+      function ensureStatusAndColumnOrder() {
+        function formatMDY(iso) {
+          const parts = String(iso || "").split("-");
+          if (parts.length !== 3) return "";
+          return `${parts[1]}/${parts[2]}/${parts[0]}`;
+        }
+
+        document.querySelectorAll("[data-invoice-row]").forEach((row) => {
+          const tds = Array.from(row.querySelectorAll("td"));
+          if (tds.length < 4) return;
+
+          const tdSelect = tds[0];
+          const tdInvoice = tds[1];
+          const tdAmount = tds.find((td) => td.className.includes("text-right")) ?? tds[tds.length - 1];
+
+          const dateTds = tds.filter(
+            (td) => td !== tdSelect && td !== tdInvoice && td !== tdAmount && td.className.includes("tabular-nums"),
+          );
+
+          let statusTd = tds.find(
+            (td) =>
+              td !== tdSelect &&
+              td !== tdInvoice &&
+              td !== tdAmount &&
+              !td.className.includes("tabular-nums") &&
+              td.querySelector?.("span.rounded-full"),
+          );
+
+          // If status td doesn't exist, create it.
+          if (!statusTd) {
+            statusTd = document.createElement("td");
+            statusTd.className = "px-4 py-4 text-sm text-slate-700 sm:px-6";
+          }
+
+          // Move pill from invoice cell into the status cell (if present)
+          const pill = tdInvoice?.querySelector("span.inline-flex.items-center.rounded-full");
+          if (pill && statusTd !== pill.parentElement) statusTd.replaceChildren(pill);
+          if (!pill && statusTd.textContent.trim().length === 0) statusTd.textContent = row.dataset.bucket || "";
+
+          // Identify due vs invoice date cells using dataset
+          const invStr = formatMDY(row.dataset.invoiceDate);
+          const dueStr = formatMDY(row.dataset.dueDate);
+          const tdInvoiceDate = dateTds.find((td) => td.textContent.trim() === invStr) ?? dateTds[0];
+          const tdDueDate = dateTds.find((td) => td.textContent.trim() === dueStr) ?? dateTds[1];
+
+          // Ensure status cell is in the row
+          if (!row.contains(statusTd)) row.insertBefore(statusTd, tdAmount);
+
+          // Reorder cells to: Select, Invoice, Status, Due date, Invoice date, Amount
+          if (tdSelect) row.appendChild(tdSelect);
+          if (tdInvoice) row.appendChild(tdInvoice);
+          if (statusTd) row.appendChild(statusTd);
+          if (tdDueDate) row.appendChild(tdDueDate);
+          if (tdInvoiceDate) row.appendChild(tdInvoiceDate);
+          if (tdAmount) row.appendChild(tdAmount);
+        });
+      }
+
+      function computeKpis() {
+        const rows = Array.from(document.querySelectorAll("[data-invoice-row]"));
+        const items = rows.map((row) => {
+          const checkbox = row.querySelector(".invoiceCheck");
+          const amount = Number(checkbox?.dataset.amount || 0);
+          const bucket = row.dataset.bucket || "open";
+          return { amount, bucket };
+        });
+
+        const total = items.reduce((s, it) => s + it.amount, 0);
+        const overdueItems = items.filter((it) => it.bucket === "overdue");
+        const dueSoonItems = items.filter((it) => it.bucket === "dueSoon");
+
+        const overdueTotal = overdueItems.reduce((s, it) => s + it.amount, 0);
+        const dueSoonTotal = dueSoonItems.reduce((s, it) => s + it.amount, 0);
+
+        document.getElementById("kpiTotal").textContent = fmt.format(total);
+        document.getElementById("kpiCount").textContent = String(items.length);
+
+        document.getElementById("kpiOverdue").textContent = fmt.format(overdueTotal);
+        document.getElementById("kpiOverdueCount").textContent = String(overdueItems.length);
+
+        document.getElementById("kpiDueSoon").textContent = fmt.format(dueSoonTotal);
+        document.getElementById("kpiDueSoonCount").textContent = String(dueSoonItems.length);
+      }
+
+      bindRowClick();
+      bindCheckboxes();
+      bindClearSelection();
+      bindPayButtons();
+      bindSearch();
+      bindSorting();
+      computeKpis();
+      syncUI();
+    </script>
+  </body>
+</html>
+
